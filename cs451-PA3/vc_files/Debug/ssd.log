@@ -1,10 +1,17 @@
-﻿Build started 10/3/2014 10:33:13 PM.
+﻿Build started 10/4/2014 5:35:18 PM.
      1>Project "C:\Users\Brandon\Documents\Visual Studio 2013\Projects\CS451_PA3_Repo\cs451-PA3\vc_files\ssd.vcxproj" on node 2 (Build target(s)).
      1>ClCompile:
          C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /I.. /I../amc_library /I../mathtool /I../modelgraph /I../GL /AI"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.0" /AI"C:\Program Files (x86)\Windows Kits\8.1\References\CommonConfiguration\Neutral" /Zi /clr /nologo /W3 /WX- /Od /Oy- /D FREEGLUT_STATIC /D WIN32 /D _DEBUG /D _CRT_SECURE_NO_DEPRECATE /D _VC80_UPGRADE=0x0710 /D _MBCS /Gm- /EHa /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc120.pdb" /TP /FU"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.0\mscorlib.dll" /analyze- /errorReport:prompt /clr:nostdlib ..\main.cpp
          main.cpp
      1>c:\users\brandon\documents\visual studio 2013\projects\cs451_pa3_repo\cs451-pa3\main.h(179): warning C4018: '<' : signed/unsigned mismatch
+     1>c:\users\brandon\documents\visual studio 2013\projects\cs451_pa3_repo\cs451-pa3\main.h(234): warning C4018: '<' : signed/unsigned mismatch
+     1>c:\users\brandon\documents\visual studio 2013\projects\cs451_pa3_repo\cs451-pa3\main.h(243): warning C4018: '<' : signed/unsigned mismatch
+     1>c:\users\brandon\documents\visual studio 2013\projects\cs451_pa3_repo\cs451-pa3\main.h(248): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
+     1>c:\users\brandon\documents\visual studio 2013\projects\cs451_pa3_repo\cs451-pa3\main.h(249): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
+     1>c:\users\brandon\documents\visual studio 2013\projects\cs451_pa3_repo\cs451-pa3\main.h(250): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
      1>C:\Users\Brandon\Documents\Visual Studio 2013\Projects\CS451_PA3_Repo\cs451-PA3\draw.h(304): warning C4018: '>=' : signed/unsigned mismatch
+     1>c:\users\brandon\documents\visual studio 2013\projects\cs451_pa3_repo\cs451-pa3\main.h(255): warning C4700: uninitialized local variable 'dist2' used
+     1>c:\users\brandon\documents\visual studio 2013\projects\cs451_pa3_repo\cs451-pa3\main.h(257): warning C4700: uninitialized local variable 'dist1' used
        Link:
          C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\Brandon\Documents\Visual Studio 2013\Projects\CS451_PA3_Repo\cs451-PA3\vc_files\Debug\ssd.exe" /INCREMENTAL /NOLOGO /LIBPATH:../lib freeglut_static.lib glu32.lib opengl32.lib Ws2_32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:\Users\Brandon\Documents\Visual Studio 2013\Projects\CS451_PA3_Repo\cs451-PA3\vc_files\Debug\ssd.pdb" /ASSEMBLYDEBUG /TLBID:1 /DYNAMICBASE /FIXED:NO /NXCOMPAT /MACHINE:X86 /SAFESEH Debug\Character.obj
          Debug\control_utils.obj
@@ -46,4 +53,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:05.31
+Time Elapsed 00:00:04.91

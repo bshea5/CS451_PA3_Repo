@@ -221,14 +221,68 @@ void bind2skin()
 	
 	//work on the first model only
 	model& model = models.front();
-
+	
 	//
 	// TODO: compute SkinningWeights using BindingPose
 	//
 	//       Read amc_library/Lirary.hpp, amc_library/Skeleton.hpp
 	//       to find out how to get all the bones
 	//
+	SkinningWeights.resize(model.v_size);
+	//BindingPose.skeleton->bones[0].direction //gets the direction of the first bone
+	Library::Skeleton const *skeleton = BindingPose.skeleton;
+	for (int i = 0; i < model.v_size; i++)
+	{
+		SkinningWeights[i].resize(skeleton->bones.size());
+		vertex& v = model.vertices[i];
+		float dist1, dist2, dist3 = NULL;
+		int b1, b2, b3; //indices to the closed bones to v
+		b1 = 0;
+		b2 = 0;
+		b3 = 0;
+		for (int j = 0; j < skeleton->bones.size(); j++)
+		{
+			//default all bones to zero for weight
+			SkinningWeights[i][j] = 0;
+			float dx, dy, dz, dist; 
+			dx = pow((v.p[0] - skeleton->bones[j].direction[0]), 2);
+			dy = pow((v.p[1] - skeleton->bones[j].direction[1]), 2);
+			dz = pow((v.p[2] - skeleton->bones[j].direction[2]), 2);
+			dist = sqrt(dx + dy + dz);
+			//check for closest bones to model vertex
+			if (dist3 == NULL || dist < dist3)
+			{
+				if (dist2 == NULL || dist < dist2)
+				{
+					if (dist1 == NULL || dist < dist1)
+					{
+						dist3 = dist2;
+						dist2 = dist1;
+						dist1 = dist;
+						b1 = j; //save bone index for later
+					}
+					else
+					{
+						dist3 = dist2;
+						dist2 = dist;
+						b2 = j;
+					}
+				}
+				else
+				{
+					dist3 = dist;
+					b3 = j;
+				}
+			}
 
+		}// end for each bone
+		//assign weights for bones closest to v, all other bone weights are zero
+		std::cout << "closest bones to v-" << i << "are bones: " 
+			<< b1 << ", " << b2 << ", " << b3 << "." << std::endl;
+
+
+	}//	end for each vertex
+	
 	//
 	// TODO: compute BoneSpaceCoordinates using BindingPose
 	//       
