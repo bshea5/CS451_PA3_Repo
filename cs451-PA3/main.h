@@ -176,20 +176,40 @@ void setupBindingPose()
 
 	BindingPose.root_position = Vector3d(0, 0, 0);
 	BindingPose.root_orientation = Quaternion();
-	for (int k = 0; k<BindingPose.bone_orientations.size(); k++) 
+	for (int k = 0; k < BindingPose.bone_orientations.size(); k++)
+	{
 		BindingPose.bone_orientations[k] = Quaternion();
+	}
 
 	//
-	// TODO: Determine the Binding Pose, you can do it manually 
-	//       or you can build a GUI to help you determine the binding pose
-	//       The binding pose is a pose that matches the input mesh
+	// DONE: Determine the Binding Pose, you can do it manually 
+	// EXTRA: Do a GUI to move bones
 	//
-
-	//test start
-	//you should remove the following two lines
-	//double r = PI / 2;
-	//BindingPose.bone_orientations[9] = Quaternion::get(r, Vector3d(0, 1, 0));
-	//test end
+	//NOTES--------------------
+	//0-4 his left leg
+	//5-7 body
+	//8-14 his left arm + hand
+	//15 - 17 neck + head
+	//18 - 24 right arm + hand
+	//25-29 his right leg
+	//-------------------------
+	BindingPose.root_position[1] -= 0.5; //reposition root by some y direction
+	//arms
+	BindingPose.bone_orientations[8] = Quaternion::get(0.10, Vector3d(0, 1, 0));
+	BindingPose.bone_orientations[9] = Quaternion::get(-0.10, Vector3d(0, 1, 0));
+	BindingPose.bone_orientations[10] = Quaternion::get(-0.70, Vector3d(0, 1, 0));
+	BindingPose.bone_orientations[18] = Quaternion::get(-0.15, Vector3d(0, 1, 0));
+	BindingPose.bone_orientations[19] = Quaternion::get(0.10, Vector3d(0, 1, 0));
+	BindingPose.bone_orientations[20] = Quaternion::get(0.70, Vector3d(0, 1, 0));
+	//legs
+	BindingPose.bone_orientations[0] = Quaternion::get(0.30, Vector3d(0, 0, 1));
+	//BindingPose.bone_orientations[1] = Quaternion::get(-0.30, Vector3d(0, 0, 1));
+	BindingPose.bone_orientations[1] =  Quaternion::get(-0.60, Vector3d(0, 0, 1));
+	//BindingPose.bone_orientations[2] = Quaternion::get(0.20, Vector3d(1, 0, 0));//* Quaternion::get(-0.10, Vector3d(0, 0, 1));
+	BindingPose.bone_orientations[25] = Quaternion::get(-0.30, Vector3d(0, 0, 1));
+	//BindingPose.bone_orientations[26] = Quaternion::get(0.30, Vector3d(0, 0, 1));
+	BindingPose.bone_orientations[26] =  Quaternion::get(0.60, Vector3d(0, 0, 1));
+	//BindingPose.bone_orientations[27] = Quaternion::get(0.20, Vector3d(1, 0, 0));//* Quaternion::get(0.10, Vector3d(0, 0, 1));
 }
 
 //
