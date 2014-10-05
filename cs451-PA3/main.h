@@ -9,6 +9,7 @@
 #include "objReader.h"
 #include "model.h"
 #include "Library.hpp" //motion capture library
+#include "pose_utils.hpp"
 #include <list>
 #include <float.h>
 using namespace std;
@@ -59,6 +60,7 @@ void bind2skin();
 
 //TODO: skeleton-subspace deformation. perform SSD 
 void SSD();
+
 
 /////------ PA3 TODOs END-----
 
@@ -203,13 +205,9 @@ void setupBindingPose()
 	BindingPose.bone_orientations[20] = Quaternion::get(0.70, Vector3d(0, 1, 0));
 	//legs
 	BindingPose.bone_orientations[0] = Quaternion::get(0.30, Vector3d(0, 0, 1));
-	//BindingPose.bone_orientations[1] = Quaternion::get(-0.30, Vector3d(0, 0, 1));
 	BindingPose.bone_orientations[1] =  Quaternion::get(-0.60, Vector3d(0, 0, 1));
-	//BindingPose.bone_orientations[2] = Quaternion::get(0.20, Vector3d(1, 0, 0));//* Quaternion::get(-0.10, Vector3d(0, 0, 1));
 	BindingPose.bone_orientations[25] = Quaternion::get(-0.30, Vector3d(0, 0, 1));
-	//BindingPose.bone_orientations[26] = Quaternion::get(0.30, Vector3d(0, 0, 1));
 	BindingPose.bone_orientations[26] =  Quaternion::get(0.60, Vector3d(0, 0, 1));
-	//BindingPose.bone_orientations[27] = Quaternion::get(0.20, Vector3d(1, 0, 0));//* Quaternion::get(0.10, Vector3d(0, 0, 1));
 }
 
 //
@@ -219,6 +217,7 @@ void bind2skin()
 {
 	if (BindToSkin) return; //already binded
 	
+	using namespace Character;
 	//work on the first model only
 	model& model = models.front();
 	
@@ -229,25 +228,32 @@ void bind2skin()
 	//       to find out how to get all the bones
 	//
 	SkinningWeights.resize(model.v_size);
-	//BindingPose.skeleton->bones[0].direction //gets the direction of the first bone
+	
+	//get information on bones
+	WorldBones *wb = new WorldBones();
+	get_world_bones(BindingPose, *wb);
+
 	Library::Skeleton const *skeleton = BindingPose.skeleton;
 	for (int i = 0; i < model.v_size; i++)
 	{
 		SkinningWeights[i].resize(skeleton->bones.size());
 		vertex& v = model.vertices[i];
-		float dist1, dist2, dist3 = NULL;
+		float dist1 = NULL;
+		float dist2 = NULL;
+		float dist3 = NULL;
 		int b1, b2, b3; //indices to the closed bones to v
 		b1 = 0;
 		b2 = 0;
 		b3 = 0;
 		for (int j = 0; j < skeleton->bones.size(); j++)
 		{
+			Vector3d base = wb->bases[j];
 			//default all bones to zero for weight
 			SkinningWeights[i][j] = 0;
-			float dx, dy, dz, dist; 
-			dx = pow((v.p[0] - skeleton->bones[j].direction[0]), 2);
-			dy = pow((v.p[1] - skeleton->bones[j].direction[1]), 2);
-			dz = pow((v.p[2] - skeleton->bones[j].direction[2]), 2);
+			float dx, dy, dz, dist;
+			dx = pow((v.p[0] - base[0]), 2);
+			dy = pow((v.p[1] - base[1]), 2);
+			dz = pow((v.p[2] - base[2]), 2);
 			dist = sqrt(dx + dy + dz);
 			//check for closest bones to model vertex
 			if (dist3 == NULL || dist < dist3)
@@ -260,25 +266,28 @@ void bind2skin()
 						dist2 = dist1;
 						dist1 = dist;
 						b1 = j; //save bone index for later
+						//std::cout << "set b1: " << b1 << std::endl;
 					}
 					else
 					{
 						dist3 = dist2;
 						dist2 = dist;
 						b2 = j;
+						//std::cout << "set b2: " << b2 << std::endl;
 					}
 				}
 				else
 				{
 					dist3 = dist;
 					b3 = j;
+					//std::cout << "set b3: " << b3 << std::endl;
 				}
 			}
 
 		}// end for each bone
 		//assign weights for bones closest to v, all other bone weights are zero
-		std::cout << "closest bones to v-" << i << "are bones: " 
-			<< b1 << ", " << b2 << ", " << b3 << "." << std::endl;
+		 std::cout << "closest bones to v-" << i << "are bones: " 
+		 	<< b1 << ", " << b2 << ", " << b3 << "." << std::endl;
 
 
 	}//	end for each vertex
@@ -306,6 +315,8 @@ void SSD()
 	// using BoneSpaceCoordinates and SkinningWeights
 	//
 }
+
+
 
 //-----------------------------------------------------------------------------
 //
