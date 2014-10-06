@@ -61,7 +61,7 @@ void bind2skin();
 //TODO: skeleton-subspace deformation. perform SSD 
 void SSD();
 
-
+double distVertexToBone(Vector3d base, Vector3d tip, vertex v);
 /////------ PA3 TODOs END-----
 
 //-----------------------------------------------------------------------------
@@ -232,29 +232,32 @@ void bind2skin()
 	//get information on bones
 	WorldBones *wb = new WorldBones();
 	get_world_bones(BindingPose, *wb);
-
 	Library::Skeleton const *skeleton = BindingPose.skeleton;
+
 	for (int i = 0; i < model.v_size; i++)
 	{
 		SkinningWeights[i].resize(skeleton->bones.size());
 		vertex& v = model.vertices[i];
-		float dist1 = NULL;
-		float dist2 = NULL;
-		float dist3 = NULL;
+		float dist1, dist2, dist3;
 		int b1, b2, b3; //indices to the closed bones to v
+		dist1 = NULL;
+		dist2 = NULL;
+		dist3 = NULL;
 		b1 = 0;
 		b2 = 0;
 		b3 = 0;
+		//find closest bones and assign them weights
 		for (int j = 0; j < skeleton->bones.size(); j++)
 		{
-			Vector3d base = wb->bases[j];
+			double dist;
+
 			//default all bones to zero for weight
 			SkinningWeights[i][j] = 0;
-			float dx, dy, dz, dist;
-			dx = pow((v.p[0] - base[0]), 2);
-			dy = pow((v.p[1] - base[1]), 2);
-			dz = pow((v.p[2] - base[2]), 2);
-			dist = sqrt(dx + dy + dz);
+
+			Vector3d base = wb->bases[j];	//bone's base (a)
+			Vector3d tip = wb->tips[j];		//bone's tip  (b)
+			dist = distVertexToBone(base, tip, v);			
+
 			//check for closest bones to model vertex
 			if (dist3 == NULL || dist < dist3)
 			{
@@ -265,29 +268,28 @@ void bind2skin()
 						dist3 = dist2;
 						dist2 = dist1;
 						dist1 = dist;
+						b3 = b2;
+						b2 = b1;
 						b1 = j; //save bone index for later
-						//std::cout << "set b1: " << b1 << std::endl;
 					}
 					else
 					{
 						dist3 = dist2;
 						dist2 = dist;
+						b3 = b2;
 						b2 = j;
-						//std::cout << "set b2: " << b2 << std::endl;
 					}
 				}
 				else
 				{
 					dist3 = dist;
 					b3 = j;
-					//std::cout << "set b3: " << b3 << std::endl;
 				}
 			}
 
 		}// end for each bone
 		//assign weights for bones closest to v, all other bone weights are zero
-		 std::cout << "closest bones to v-" << i << "are bones: " 
-		 	<< b1 << ", " << b2 << ", " << b3 << "." << std::endl;
+		std::cout << "closest bones to v-" << i << "are bones: " << b1 << ", " << b2 << ", " << b3 << "." << std::endl;
 
 
 	}//	end for each vertex
@@ -316,7 +318,45 @@ void SSD()
 	//
 }
 
+//point distance to line segment
+double distVertexToBone(Vector3d base, Vector3d tip, vertex v)
+{
+	double ab_dist, ap_prime_dist;
+	Vector3d p_prime, ab_vector, ap_prime_vector, pa_vector, pb_vector, pp_prime_vector;
 
+	ab_vector = base - tip;				//get vector ab, from a - b
+	ab_dist = sqrt( pow(ab_vector[0], 2) + pow(ab_vector[1], 2) + pow(ab_vector[2], 2) );
+
+	pa_vector[0] = v.p[0] - base[0];	//get vector pa, from p - a
+	pa_vector[1] = v.p[1] - base[1]; 	//
+	pa_vector[2] = v.p[2] - base[2];	//
+
+	ap_prime_vector = pa_vector * (ab_vector / ab_dist);
+	ap_prime_dist = sqrt( pow(ap_prime_vector[0], 2) + pow(ap_prime_vector[1], 2) + pow(ap_prime_vector[2], 2) );
+
+	p_prime = (ab_vector / ab_dist) * (ap_prime_vector + base);
+
+	if (ap_prime_dist < 0) 
+	{ 	//return ||pa||
+		return sqrt( pow(pa_vector[0], 2) + pow(pa_vector[1], 2) + pow(pa_vector[2], 2) );
+	}
+	if (ap_prime_dist > ab_dist)
+	{	//return ||pb||
+		pb_vector[0] = v.p[0] - tip[0];		//get vector pb, from p - b
+		pb_vector[1] = v.p[1] - tip[1]; 	//
+		pb_vector[2] = v.p[2] - tip[2];		//
+
+		return sqrt( pow(pb_vector[0], 2) + pow(pb_vector[1], 2) + pow(pb_vector[2], 2) );
+	}
+	else
+	{	//return ||pp'||
+		pp_prime_vector[0] = v.p[0] - p_prime[0];	//get vector pp' 
+		pp_prime_vector[1] = v.p[1] - p_prime[1];	//
+		pp_prime_vector[2] = v.p[2] - p_prime[2];	//
+
+		return sqrt( pow(pp_prime_vector[0], 2) + pow(pp_prime_vector[1], 2) + pow(pp_prime_vector[2], 2) );
+	}
+}
 
 //-----------------------------------------------------------------------------
 //
