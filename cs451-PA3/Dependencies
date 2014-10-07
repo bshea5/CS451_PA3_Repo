@@ -157,3 +157,52 @@ main.o: main.cpp main.h objReader.h mathtool/Point.h mathtool/Vector.h \
   amc_library/Library.hpp amc_library/Skeleton.hpp \
   amc_library/Character.hpp amc_library/pose_utils.hpp draw.h GL/gli.h \
   amc_library/Draw.hpp
+main.o: main.cpp main.h objReader.h mathtool/Point.h mathtool/Vector.h \
+  mathtool/Basic.h mathtool/Quaternion.h mathtool/Matrix.h model.h \
+  amc_library/Library.hpp amc_library/Skeleton.hpp \
+  amc_library/Character.hpp amc_library/pose_utils.hpp draw.h GL/gli.h \
+  amc_library/Draw.hpp
+main.o: main.cpp main.h objReader.h mathtool/Point.h mathtool/Vector.h \
+  mathtool/Basic.h mathtool/Quaternion.h mathtool/Matrix.h model.h \
+  amc_library/Library.hpp amc_library/Skeleton.hpp \
+  amc_library/Character.hpp amc_library/pose_utils.hpp draw.h GL/gli.h \
+  amc_library/Draw.hpp
+main.o: main.cpp main.h objReader.h mathtool/Point.h mathtool/Vector.h \
+  mathtool/Basic.h mathtool/Quaternion.h mathtool/Matrix.h model.h \
+  amc_library/Library.hpp amc_library/Skeleton.hpp \
+  amc_library/Character.hpp amc_library/pose_utils.hpp draw.h GL/gli.h \
+  amc_library/Draw.hpp
+amc_library/Library.o: amc_library/Library.cpp amc_library/Library.hpp \
+  amc_library/Skeleton.hpp amc_library/Character.hpp mathtool/Vector.h \
+  mathtool/Basic.h mathtool/Quaternion.h mathtool/Matrix.h \
+  mathtool/Point.h amc_library/ReadSkeleton.hpp \
+  amc_library/pose_utils.hpp
+amc_library/pose_utils.o: amc_library/pose_utils.cpp \
+  amc_library/pose_utils.hpp amc_library/Character.hpp mathtool/Vector.h \
+  mathtool/Basic.h mathtool/Quaternion.h mathtool/Matrix.h \
+  mathtool/Point.h amc_library/Library.hpp amc_library/Skeleton.hpp
+main.o: main.cpp main.h objReader.h mathtool/Point.h mathtool/Vector.h \
+  mathtool/Basic.h mathtool/Quaternion.h mathtool/Matrix.h model.h \
+  amc_library/Library.hpp amc_library/Skeleton.hpp \
+  amc_library/Character.hpp amc_library/pose_utils.hpp draw.h GL/gli.h \
+  amc_library/Draw.hpp
+main.o: main.cpp main.h objReader.h mathtool/Point.h mathtool/Vector.h \
+  mathtool/Basic.h mathtool/Quaternion.h mathtool/Matrix.h model.h \
+  amc_library/Library.hpp amc_library/Skeleton.hpp \
+  amc_library/Character.hpp amc_library/pose_utils.hpp draw.h GL/gli.h \
+  amc_library/Draw.hpp
+main.o: main.cpp main.h objReader.h mathtool/Point.h mathtool/Vector.h \
+  mathtool/Basic.h mathtool/Quaternion.h mathtool/Matrix.h model.h \
+  amc_library/Library.hpp amc_library/Skeleton.hpp \
+  amc_library/Character.hpp amc_library/pose_utils.hpp draw.h GL/gli.h \
+  amc_library/Draw.hpp
+main.o: main.cpp main.h objReader.h mathtool/Point.h mathtool/Vector.h \
+  mathtool/Basic.h mathtool/Quaternion.h mathtool/Matrix.h model.h \
+  amc_library/Library.hpp amc_library/Skeleton.hpp \
+  amc_library/Character.hpp amc_library/pose_utils.hpp draw.h GL/gli.h \
+  amc_library/Draw.hpp
+main.o: main.cpp main.h objReader.h mathtool/Point.h mathtool/Vector.h \
+  mathtool/Basic.h mathtool/Quaternion.h mathtool/Matrix.h model.h \
+  amc_library/Library.hpp amc_library/Skeleton.hpp \
+  amc_library/Character.hpp amc_library/pose_utils.hpp draw.h GL/gli.h \
+  amc_library/Draw.hpp
