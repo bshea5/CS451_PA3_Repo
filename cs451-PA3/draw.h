@@ -48,7 +48,7 @@ extern vector< vector<double> > SkinningWeights; //weights for each vertex and e
 //there are N vector<double>, where N is the number of vertices in the mesh
 //there are K double in vector<double>, where K is the number of bones in skeleton 
 
-extern vector< vector<Point3d> > BoneSpaceCoordinates; //local coordinates for each vertex in bone subspace
+extern vector< vector<Vector3d> > BoneSpaceCoordinates; //local coordinates for each vertex in bone subspace
 //there are N vector<Point3d>, where N is the number of vertices in the mesh
 //there are K double in vector<Point3d>, where K is the number of bones in skeleton 
 

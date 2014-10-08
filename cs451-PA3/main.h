@@ -13,7 +13,7 @@
 #include <list>
 #include <float.h>
 using namespace std;
-
+using namespace Character;
 //-----------------------------------------------------------------------------
 // INPUTS
 list<string> input_filenames;
@@ -34,13 +34,14 @@ int currentFrame=0;  //current frame in the dataset, used to animate skeleton
 
 bool BindToSkin = false;       // initially the skeleton is not binded to the skin (mesh)
 
-Character::Pose BindingPose;   // at this pose that the skeleton binds to the skin
+Character::Pose BindingPose;   	// at this pose that the skeleton binds to the skin
+Character::Pose CurrentPose;	// current pose of the skeleton
 
 vector< vector<double> > SkinningWeights; //weights for each vertex and each bone
                                           //there are N vector<double>, where N is the number of vertices in the mesh
                                           //there are K double in vector<double>, where K is the number of bones in skeleton 
 
-vector< vector<Point3d> > BoneSpaceCoordinates; //local coordinates for each vertex in bone subspace
+vector< vector<Vector3d> > BoneSpaceCoordinates; //local coordinates for each vertex in bone subspace
                                                 //there are N vector<Point3d>, where N is the number of vertices in the mesh
                                                 //there are K double in vector<Point3d>, where K is the number of bones in skeleton 
 
@@ -204,10 +205,10 @@ void setupBindingPose()
 	BindingPose.bone_orientations[19] = Quaternion::get(0.10, Vector3d(0, 1, 0));
 	BindingPose.bone_orientations[20] = Quaternion::get(0.70, Vector3d(0, 1, 0));
 	//legs
-	BindingPose.bone_orientations[0] = Quaternion::get(0.30, Vector3d(0, 0, 1));
-	BindingPose.bone_orientations[1] = Quaternion::get(-0.60, Vector3d(0, 0, 1));
-	BindingPose.bone_orientations[25] = Quaternion::get(-0.30, Vector3d(0, 0, 1));
-	BindingPose.bone_orientations[26] = Quaternion::get(0.60, Vector3d(0, 0, 1));
+	BindingPose.bone_orientations[0] = Quaternion::get(0.20, Vector3d(0, 0, 1));
+	BindingPose.bone_orientations[1] = Quaternion::get(-1.0, Vector3d(0, 0, 1));
+	BindingPose.bone_orientations[25] = Quaternion::get(-0.70, Vector3d(0, 0, 1));
+	BindingPose.bone_orientations[26] = Quaternion::get(1.0, Vector3d(0, 0, 1));
 }
 
 //
@@ -217,7 +218,6 @@ void bind2skin()
 {
 	if (BindToSkin) return; //already binded
 	
-	using namespace Character;
 	//work on the first model only
 	model& model = models.front();
 	
@@ -236,10 +236,10 @@ void bind2skin()
 	{
 		SkinningWeights[i].resize(skeleton->bones.size());
 		BoneSpaceCoordinates[i].resize(skeleton->bones.size());
+		
 		vertex& v = model.vertices[i];
-		double dist1, dist2, dist3, D;
-		Point3d newP;
-		int b1, b2, b3; //indices to the closed bones to v
+		double dist1, dist2, dist3, D;	//distances to compare
+		int b1, b2, b3; 				//indices to the closed bones to v
 		dist1 = NULL;
 		dist2 = NULL;
 		dist3 = NULL;
@@ -250,12 +250,8 @@ void bind2skin()
 		//find closest bones and assign them weights
 		for (int j = 0; j < skeleton->bones.size(); j++)
 		{
-			double dist;
-
 			SkinningWeights[i][j] = 0;		//default all bones to zero for weight
-			Vector3d base = wb->bases[j];	//bone's base (a)
-			Vector3d tip = wb->tips[j];		//bone's tip  (b)
-			dist = distVertexToBone(base, tip, v);			
+			double dist = distVertexToBone(wb->bases[j], wb->tips[j], v);	//distance to bone		
 
 			//check for closest bones to model vertex
 			if (dist3 == NULL || dist < dist3)
@@ -294,29 +290,21 @@ void bind2skin()
 		SkinningWeights[i][b2] = (1 / dist2) / D;
 		SkinningWeights[i][b3] = (1 / dist3) / D;
 
+		//
+		// DONE: compute BoneSpaceCoordinates using BindingPose
+		//       determine the cooridnates of each model vertex with respect to each bone
+		//       in binding pose
 		for (int j = 0; j < skeleton->bones.size(); j++) //get point to bone space
 		{
-			Point3d point = wb->orientations[j].rotate(v.p);					
-			BoneSpaceCoordinates[i][j][0] = SkinningWeights[i][j] * point[0];	
-			BoneSpaceCoordinates[i][j][1] = SkinningWeights[i][j] * point[1]; 	
-			BoneSpaceCoordinates[i][j][2] = SkinningWeights[i][j] * point[2]; 	
+			Vector3d p_w = Vector3d(v.p[0], v.p[1], v.p[2], 1);
+			BoneSpaceCoordinates[i][j] = (-wb->orientations[j]).rotate(p_w - wb->bases[j]);
 		}
 		
 
 	}//	end for each vertex
 	
-	//
-	// TODO: compute BoneSpaceCoordinates using BindingPose
-	// DONE???      
-	//       determine the cooridnates of each model vertex with respect to each bone
-	//       in binding pose
-
-	//point to bone space
-
-
-	//
-	//
 	BindToSkin = true;
+	SSD();
 }
 
 //TODO: skeleton-subspace deformation. perform SSD 
@@ -327,10 +315,32 @@ void SSD()
 	//
 	model& model = models.front();
 
+	Library::Motion const &mo = Library::motion(currentMotion);
+	mo.get_pose(currentFrame, CurrentPose); 
+	
+	//get world coords from new pose
+	WorldBones *wb = new WorldBones();
+	get_world_bones(CurrentPose, *wb);
+	Library::Skeleton const *skeleton = CurrentPose.skeleton;
+
 	//
 	// recompute the position of each vertex in model
 	// using BoneSpaceCoordinates and SkinningWeights
-	//
+	// new point = summazition of weight_i * World_coord_i * BoneSpaceCoord^-1 * vertex
+	for (int i = 0; i < model.v_size; i++)	//for each vertex
+	{
+		vertex& v = model.vertices[i];
+		Vector3d v_prime;
+
+		for (int j = 0; j < skeleton->bones.size(); j++)	//for each bone
+		{
+			v_prime = v_prime + SkinningWeights[i][j] 
+					* (wb->bases[j] + wb->orientations[j].rotate(BoneSpaceCoordinates[i][j]));
+		}
+		v.p[0] = v_prime[0];
+		v.p[1] = v_prime[1];
+		v.p[2] = v_prime[2];
+	}
 }
 
 //point distance to line segment
