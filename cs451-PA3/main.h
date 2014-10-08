@@ -12,8 +12,10 @@
 #include "pose_utils.hpp"
 #include <list>
 #include <float.h>
+
 using namespace std;
 using namespace Character;
+
 //-----------------------------------------------------------------------------
 // INPUTS
 list<string> input_filenames;
@@ -51,18 +53,20 @@ vector< vector<Vector3d> > BoneSpaceCoordinates; //local coordinates for each ve
 
 /////------ PA3 TODOs START-----
 
-//TODO: implement this function to setup the binding pose.
+//DONE: implement this function to setup the binding pose.
 //      See details below
 void setupBindingPose();
 
-//TODO: implement this function to bind the skeleton to the skin.
+//DONE: implement this function to bind the skeleton to the skin.
 //      See details below
 void bind2skin();
 
-//TODO: skeleton-subspace deformation. perform SSD 
+//DONE: skeleton-subspace deformation. perform SSD 
 void SSD();
 
-double distVertexToBone(Vector3d base, Vector3d tip, vertex v);
+//additional function to find distance from a vertex's point to a bone
+double dist_Point_to_Bone(Vector3d base, Vector3d tip, Point3d P);
+
 /////------ PA3 TODOs END-----
 
 //-----------------------------------------------------------------------------
@@ -186,7 +190,7 @@ void setupBindingPose()
 
 	//
 	// DONE: Determine the Binding Pose, you can do it manually 
-	// EXTRA: Do a GUI to move bones
+	// TODO EXTRA: Do a GUI to move bones
 	//
 	//NOTES--------------------
 	//0-4 his left leg
@@ -205,10 +209,10 @@ void setupBindingPose()
 	BindingPose.bone_orientations[19] = Quaternion::get(0.10, Vector3d(0, 1, 0));
 	BindingPose.bone_orientations[20] = Quaternion::get(0.70, Vector3d(0, 1, 0));
 	//legs
-	BindingPose.bone_orientations[0] = Quaternion::get(0.20, Vector3d(0, 0, 1));
-	BindingPose.bone_orientations[1] = Quaternion::get(-1.0, Vector3d(0, 0, 1));
-	BindingPose.bone_orientations[25] = Quaternion::get(-0.70, Vector3d(0, 0, 1));
-	BindingPose.bone_orientations[26] = Quaternion::get(1.0, Vector3d(0, 0, 1));
+	BindingPose.bone_orientations[0] = Quaternion::get(0.10, Vector3d(0, 0, 1));
+	BindingPose.bone_orientations[1] = Quaternion::get(-0.40, Vector3d(0, 0, 1));
+	BindingPose.bone_orientations[25] = Quaternion::get(-0.10, Vector3d(0, 0, 1));
+	BindingPose.bone_orientations[26] = Quaternion::get(0.40, Vector3d(0, 0, 1));
 }
 
 //
@@ -243,52 +247,43 @@ void bind2skin()
 		dist1 = NULL;
 		dist2 = NULL;
 		dist3 = NULL;
-		b1 = 0;
-		b2 = 0;
-		b3 = 0;
 
 		//find closest bones and assign them weights
 		for (int j = 0; j < skeleton->bones.size(); j++)
 		{
 			SkinningWeights[i][j] = 0;		//default all bones to zero for weight
-			double dist = distVertexToBone(wb->bases[j], wb->tips[j], v);	//distance to bone		
+			double dist = dist_Point_to_Bone(wb->bases[j], wb->tips[j], v.p); //get distance to bone
 
 			//check for closest bones to model vertex
-			if (dist3 == NULL || dist < dist3)
+			if (dist1 == NULL || dist < dist1)	//closest bone
 			{
-				if (dist2 == NULL || dist < dist2)
-				{
-					if (dist1 == NULL || dist < dist1)
-					{
-						dist3 = dist2;
-						dist2 = dist1;
-						dist1 = dist;
-						b3 = b2;
-						b2 = b1;
-						b1 = j; //save bone index for later
-					}
-					else
-					{
-						dist3 = dist2;
-						dist2 = dist;
-						b3 = b2;
-						b2 = j;
-					}
-				}
-				else
-				{
-					dist3 = dist;
-					b3 = j;
-				}
+				//dist3 = dist2;
+				dist2 = dist1;
+				dist1 = dist;
+				//b3 = b2;
+				b2 = b1;
+				b1 = j;
 			}
+			else if (dist2 == NULL || dist < dist2)	//second closest
+			{
+				//dist3 = dist2;
+				dist2 = dist;
+				//b3 = b2;
+				b2 = j;
+			}
+			// else if (dist3 == NULL || dist < dist3)	//third closest
+			// {
+			// 	dist3 = dist;
+			// 	b3 = j;
+			// }
 
 		}// end for each bone
-		//std::cout << "closest bones to v-" << i << "are bones: " << b1 << ", " << b2 << ", " << b3 << "." << std::endl;
 		//assign weights for bones closest to v, all other bone weights are zero
-		D = (1 / dist1) + (1 / dist2) + (1 / dist3);
+		//D = (1 / dist1) + (1 / dist2) + (1 / dist3);
+		D = (1 / dist1) + (1 / dist2);
 		SkinningWeights[i][b1] = (1 / dist1) / D;
 		SkinningWeights[i][b2] = (1 / dist2) / D;
-		SkinningWeights[i][b3] = (1 / dist3) / D;
+		//SkinningWeights[i][b3] = (1 / dist3) / D;
 
 		//
 		// DONE: compute BoneSpaceCoordinates using BindingPose
@@ -343,44 +338,27 @@ void SSD()
 	}
 }
 
-//point distance to line segment
-double distVertexToBone(Vector3d base, Vector3d tip, vertex v)
+// dist_Point_to_Segment(): get the distance of a point to a segment
+//     Input:  base and tip of the bones, Vector3d's and a Point3d point (in any dimension)
+//     Return: the shortest distance from p to the bone
+double
+dist_Point_to_Bone(Vector3d base, Vector3d tip, Point3d p)
 {
-	double ab_dist, ap_prime_dist;
-	Vector3d p_prime, ab_vector, ap_prime_vector, pa_vector, pb_vector, pp_prime_vector;
+	 Vector3d P = Vector3d(p[0], p[1], p[2], 1);
+     Vector3d v = tip - base;
+     Vector3d w = P - base;
 
-	ab_vector = base - tip;				//get vector ab, from a - b
-	ab_dist = sqrt( pow(ab_vector[0], 2) + pow(ab_vector[1], 2) + pow(ab_vector[2], 2) );
+     double c1 = w * v;
+     if ( c1 <= 0 )
+          return sqrt( pow((P[0] - base[0]), 2) + pow((P[1] - base[1]), 2) + pow((P[2] - base[2]), 2) );
 
-	pa_vector[0] = v.p[0] - base[0];	//get vector pa, from p - a
-	pa_vector[1] = v.p[1] - base[1]; 	//
-	pa_vector[2] = v.p[2] - base[2];	//
+     double c2 = v * v;
+     if ( c2 <= c1 )
+          return sqrt( pow((P[0] - tip[0]), 2) + pow((P[1] - tip[1]), 2) + pow((P[2] - tip[2]), 2) );
 
-	ap_prime_vector = pa_vector * (ab_vector / ab_dist);
-	ap_prime_dist = sqrt( pow(ap_prime_vector[0], 2) + pow(ap_prime_vector[1], 2) + pow(ap_prime_vector[2], 2) );
-
-	p_prime = (ab_vector / ab_dist) * (ap_prime_vector + base);
-
-	if (ap_prime_dist < 0) 
-	{ 	//return ||pa||
-		return sqrt( pow(pa_vector[0], 2) + pow(pa_vector[1], 2) + pow(pa_vector[2], 2) );
-	}
-	if (ap_prime_dist > ab_dist)
-	{	//return ||pb||
-		pb_vector[0] = v.p[0] - tip[0];		//get vector pb, from p - b
-		pb_vector[1] = v.p[1] - tip[1]; 	//
-		pb_vector[2] = v.p[2] - tip[2];		//
-
-		return sqrt( pow(pb_vector[0], 2) + pow(pb_vector[1], 2) + pow(pb_vector[2], 2) );
-	}
-	else
-	{	//return ||pp'||
-		pp_prime_vector[0] = v.p[0] - p_prime[0];	//get vector pp' 
-		pp_prime_vector[1] = v.p[1] - p_prime[1];	//
-		pp_prime_vector[2] = v.p[2] - p_prime[2];	//
-
-		return sqrt( pow(pp_prime_vector[0], 2) + pow(pp_prime_vector[1], 2) + pow(pp_prime_vector[2], 2) );
-	}
+     double b = c1 / c2;
+     Vector3d Pb = base + b * v;
+     return sqrt( pow((P[0] - Pb[0]), 2) + pow((P[1] - Pb[1]), 2) + pow((P[2] - Pb[2]), 2) );
 }
 
 //-----------------------------------------------------------------------------
