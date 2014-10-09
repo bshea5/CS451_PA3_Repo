@@ -242,49 +242,56 @@ void bind2skin()
 		BoneSpaceCoordinates[i].resize(skeleton->bones.size());
 		
 		vertex& v = model.vertices[i];
-		double dist1, dist2, dist3, D;	//distances to compare
-		int b1, b2, b3; 				//indices to the closed bones to v
-		dist1 = NULL;
-		dist2 = NULL;
-		dist3 = NULL;
+		double distances[3] = {NULL, NULL, NULL}; //distances to compare
+		double D = 0;
+		double maxDist = 0.5;	
+		int b1, b2, b3; 	//indices to the closed bones to v
+		//dist1 = NULL;
+		//dist2 = NULL;
+		//dist3 = NULL;
 
 		//find closest bones and assign them weights
 		for (int j = 0; j < skeleton->bones.size(); j++)
 		{
 			SkinningWeights[i][j] = 0;		//default all bones to zero for weight
-			double dist = dist_Point_to_Bone(wb->bases[j], wb->tips[j], v.p); //get distance to bone
-
+			double dist = dist_Point_to_Bone(wb->bases[j], wb->tips[j], v.p); 
+			
 			//check for closest bones to model vertex
-			if (dist1 == NULL || dist < dist1)	//closest bone
+			//if (dist <= maxDist)
+			if (distances[0] == NULL || dist < distances[0])	//closest bone
 			{
-				//dist3 = dist2;
-				dist2 = dist1;
-				dist1 = dist;
-				//b3 = b2;
+				distances[2] = distances[1];
+				distances[1] = distances[0];
+				distances[0] = dist;
+				b3 = b2;
 				b2 = b1;
 				b1 = j;
 			}
-			else if (dist2 == NULL || dist < dist2)	//second closest
+			else if (distances[1] == NULL || dist < distances[1])	//second closest
 			{
-				//dist3 = dist2;
-				dist2 = dist;
-				//b3 = b2;
+				distances[2] = distances[1];
+				distances[1] = dist;
+				b3 = b2;
 				b2 = j;
 			}
-			// else if (dist3 == NULL || dist < dist3)	//third closest
-			// {
-			// 	dist3 = dist;
-			// 	b3 = j;
-			// }
+			else if (distances[2] == NULL || dist < distances[2] < maxDist)	//third closest
+			{
+				distances[2] = dist;
+				b3 = j;
+			}
 
 		}// end for each bone
 		//assign weights for bones closest to v, all other bone weights are zero
-		//D = (1 / dist1) + (1 / dist2) + (1 / dist3);
-		D = (1 / dist1) + (1 / dist2);
-		SkinningWeights[i][b1] = (1 / dist1) / D;
-		SkinningWeights[i][b2] = (1 / dist2) / D;
-		//SkinningWeights[i][b3] = (1 / dist3) / D;
 
+		D = (1 / distances[0]) + (1 / distances[1]) + (1 / distances[2]);
+		//D = (1 / dist1) + (1 / dist2);
+		//std::cout << b1 << ' ' << b2 << ' ' << b3 << std::endl;
+		if (D != 0) 
+		{
+			if (distances[0] != NULL) { SkinningWeights[i][b1] = (1 / distances[0]) / D; }
+			if (distances[1] != NULL) { SkinningWeights[i][b2] = (1 / distances[1]) / D; }
+			if (distances[2] != NULL) { SkinningWeights[i][b3] = (1 / distances[2]) / D; }
+		}
 		//
 		// DONE: compute BoneSpaceCoordinates using BindingPose
 		//       determine the cooridnates of each model vertex with respect to each bone
